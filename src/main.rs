@@ -1,3 +1,25 @@
+fn get_bounding_box(points_list: &Vec<&Point>) -> ((f64, f64), (f64, f64)) {
+    let mut bounding_box_x = (points_list[0].x, points_list[0].x);
+    let mut bounding_box_y = (points_list[0].y, points_list[0].y);
+
+    for point in points_list {
+        if point.x < bounding_box_x.0 {
+            bounding_box_x.0 = point.x;
+        }
+        if point.x > bounding_box_x.1 {
+            bounding_box_x.1 = point.x;
+        }
+        if point.y < bounding_box_y.0 {
+            bounding_box_y.0 = point.y;
+        }
+        if point.y > bounding_box_y.1 {
+            bounding_box_y.1 = point.y;
+        }
+    }
+
+    return (bounding_box_x, bounding_box_y);
+}
+
 #[derive(PartialEq)]
 struct Point {
     x: f64,
@@ -18,11 +40,15 @@ struct Quadrilateral {
     b: Point,
     c: Point,
     d: Point,
+    bounding_box: ((f64, f64), (f64, f64)),
 }
 
 impl Quadrilateral {
     fn new(a: Point, b: Point, c: Point, d: Point) -> Quadrilateral {
-        Quadrilateral { a, b, c, d }
+        let points: Vec<&Point> = vec![&a, &b, &c, &d];
+        let bounding_box = get_bounding_box(&points);
+
+        Quadrilateral { a, b, c, d, bounding_box }
     }
     fn get_desmos_draw(&self) -> String {
         return format!("polygon(({},{}),({},{}),({},{}),({},{}))", self.a.x, self.a.y, self.b.x, self.b.y, self.c.x, self.c.y, self.d.x, self.d.y);
@@ -82,18 +108,10 @@ impl Quadrilateral {
         }
         return (collision_detected, collision_points);
     }
-    fn check_collision(quad_a: &Quadrilateral, quad_b: &Quadrilateral) -> (bool, Option<Point>) {
-        let quad_a_linears = quad_a.get_linears();
-        let quad_b_linears = quad_b.get_linears();
-        for a in &quad_a_linears {
-            for b in &quad_b_linears {
-                let is_colliding = Linear::get_collision(a, b);
-                if is_colliding.0 {
-                    return (true, is_colliding.1);
-                }
-            }
-        }
-        (false, None)
+
+    fn bb_overlap(quad_1: &Quadrilateral, quad_2: &Quadrilateral) -> bool {
+        // CONTINUE HERE
+        false
     }
 }
 
@@ -303,24 +321,7 @@ impl Linear {
     }
 }
 
-enum Object<'a> {
-    Point(&'a Point),
-    Linear(&'a Linear),
-    Quadrilateral(&'a Quadrilateral),
-}
-
-fn draw_all(draw_list: &Vec<Object>) {
-    for object in draw_list {
-        match object {
-            &Object::Linear(value) => {println!("{}", value.get_desmos_draw())}
-            &Object::Point(value) => {println!("{}", value.get_desmos_draw())}
-            &Object::Quadrilateral(value) => {println!("{}", value.get_desmos_draw())}
-        }
-    }
-}
-
 fn main() {
-    let mut draw_list: Vec<Object> = Vec::new();
     let square_1 = Quadrilateral::new(
         Point::new(0f64, 0f64),
         Point::new(5f64, 1f64), 
@@ -331,9 +332,6 @@ fn main() {
     let sq1sq2_collisions = Quadrilateral::get_collision_points(&square_1, &square_2);
     
     println!("is_col? {} times col: {}", sq1sq2_collisions.0, sq1sq2_collisions.1.len());
-    
-    draw_list.push(Object::Quadrilateral(&square_1));
-    draw_list.push(Object::Quadrilateral(&square_2));
 
     for x in &sq1sq2_collisions.1 {
         println!("{}", x.get_desmos_draw());
@@ -344,6 +342,4 @@ fn main() {
     for x in &square_2.get_linears() {
         println!("{}", x.get_desmos_draw());
     }
-
-    draw_all(&draw_list);
 }

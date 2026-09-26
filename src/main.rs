@@ -111,6 +111,7 @@ impl Quadrilateral {
 
     fn bb_overlap(quad_1: &Quadrilateral, quad_2: &Quadrilateral) -> bool {
         // CONTINUE HERE
+        
         false
     }
 }
@@ -342,4 +343,6 @@ fn main() {
     for x in &square_2.get_linears() {
         println!("{}", x.get_desmos_draw());
     }
+    println!("{}", square_1.get_desmos_draw());
+    println!("{}", square_2.get_desmos_draw());
 }
